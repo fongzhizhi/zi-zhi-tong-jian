@@ -1,0 +1,37 @@
+{
+  "name": "zi-zhi-tong-jian",
+  "version": "1.0.0",
+  "description": "资治通鉴阅读整理；原文、白话文、胡三省音注三版结合本",
+  "main": "app.router.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prettier": "prettier --write src/**/*.ts --write src/**/*.less --write *.js",
+    "build": "vite build",
+    "server": "node app.router.js",
+    "vite": "vite --open",
+    "dev": "npm-run-all -p server vite"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fongzhizhi/zi-zhi-tong-jian.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fongzhizhi/zi-zhi-tong-jian/issues"
+  },
+  "homepage": "https://github.com/fongzhizhi/zi-zhi-tong-jian#readme",
+  "dependencies": {
+    "@types/axios": "^0.14.0",
+    "@types/marked": "^4.0.1",
+    "axios": "^0.21.4",
+    "express": "^4.17.2",
+    "less": "^4.1.2",
+    "marked": "^4.0.5",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.5.1",
+    "typescript": "^4.5.2",
+    "vite": "^2.7.7"
+  }
+}
