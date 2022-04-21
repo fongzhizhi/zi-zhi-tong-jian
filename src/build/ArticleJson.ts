@@ -14,11 +14,13 @@ export function source2Articlejson(opts: {
     style: ArticleStyle;
 }): ArticleJson {
     const json: ArticleJson = {
-        title: '',
-        paras: [],
+        paragraphs: {
+            source: source2ArticleItems(opts.source),
+            note: source2ArticleItems(opts.note),
+            translation: source2ArticleItems(opts.translation),
+        },
         style: opts.style,
     };
-    const source = source2ArticleItems(opts.source);
     return json;
 }
 
@@ -28,29 +30,27 @@ export function source2Articlejson(opts: {
  */
 export function source2ArticleItems(dataStr: string): ArticleParagraph[] {
     /**段分隔符 */
-    const ParagraphSplit = '\r\n';
+    const ParagraphSplit = '\n';
     /**段开始标记 */
     const ParagraphStart = '<';
     /**段结束标记 */
     const ParagraphEnd = '\>';
-
+    
     const dataArr = dataStr.split(ParagraphSplit);
     let beginMerge = false; // 段合并标记
-    let paragraphMerge: string[] = [];
     const paragraphs: ArticleParagraph[] = [];
     const merges: ArticleParagraph[] = [];
-    let item: ArticleParagraph = null;
+    let item: ArticleParagraph | string = null;
     dataArr.forEach(p => {
         if(!beginMerge && p.startsWith(ParagraphStart)) {
             p = p.substring(ParagraphStart.length);
             beginMerge = true;
         }
-        // 段合并
+        // 开始段合并
         if(beginMerge) {
-            paragraphMerge.push(p);
             beginMerge = !p.endsWith(ParagraphEnd);
             if(!beginMerge) {
-                p = p.substring(0, p.length - ParagraphEnd.length);
+                p = p.substring(0, p.length - ParagraphEnd.length - 1);
             }
             item = paragraph2Json(p);
             merges.push({
@@ -61,25 +61,30 @@ export function source2ArticleItems(dataStr: string): ArticleParagraph[] {
             });
 
             if(!beginMerge) {
+                // 结束合并
                 paragraphs.push({
-                    content: merges,
+                    content: [...merges],
                 });
-                merges.length = 0; 
+                merges.length = 0;
             }
             return;
         }
         item = paragraph2Json(p);
-        paragraphs.push({
-            content: [item],
-        });
+        if(typeof item === 'string') {
+            paragraphs.push({
+                content: [item],
+            });
+        } else {
+            paragraphs.push(item);
+        }
     });
     return paragraphs;
 }
 
 /**
- * 段源码解析未段json格式
+ * 段源码解析为文章段json格式
  */
-export function paragraph2Json(p: string): ArticleParagraph {
+export function paragraph2Json(p: string): ArticleParagraph | string {
     /** */
     const scriptStart = '{';
     const scriptEnd = '}';
@@ -121,6 +126,9 @@ export function paragraph2Json(p: string): ArticleParagraph {
     }
     if(item) {
         (json.content as string[]).push(item);
+    }
+    if(!json.options && json.content.length === 1) {
+        return json.content.pop();
     }
     return json;
 

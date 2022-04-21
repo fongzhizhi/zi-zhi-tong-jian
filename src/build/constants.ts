@@ -2,8 +2,8 @@
  * 文章段配置
  */
 export interface ArticleParagraphOptions {
-    /**段类型 */
-    type: string;
+    /**段标记 */
+    tag: string;
     /**段内注释 */
     '*': boolean;
     /**段注释 */
@@ -21,7 +21,7 @@ export interface ArticleParagraphOptions {
  */
 export interface ArticleParagraph {
     /**内容 */
-    content: string[] | ArticleParagraph[];
+    content: (string | ArticleParagraph)[];
     /**配置 */
     options?: Partial<ArticleParagraphOptions>;
 }
@@ -39,17 +39,28 @@ export interface ArticleStyle {
  * 文章Json结构
  */
 export interface ArticleJson {
-    /**文章标题 */
-    title: string;
     /**文章段集合 */
-    paras: {
+    paragraphs: {
         /**原文 */
-        source: ArticleParagraph,
+        source: ArticleParagraph[],
         /**注解 */
-        note: ArticleParagraph,
+        note: ArticleParagraph[],
         /**译文 */
-        trnslation: ArticleParagraph,
-    }[];
+        translation: ArticleParagraph[],
+    };
     /**文章样式 */
     style?: ArticleStyle;
 }
+
+export interface XmlInfo {
+    pType: {
+        /**段前缀 */
+        pre: string;
+        /**段后缀 */
+        suffix: string;
+    };
+    /**段分割内容 */
+    arr: string[];
+    /**段分割附带选项 */
+    optionIndexMap?: Partial<ArticleParagraphOptions>[];
+};
