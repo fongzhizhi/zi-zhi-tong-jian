@@ -15,9 +15,9 @@ export function ArticleJson2XML(json: ArticleJson, opts?: Partial<{
     xmlStr: string,
 } {
     const { paragraphs } = json;
+    opts = opts || {};
     const style = opts.ignoreStyle ? null : json.style;
     const {source, note, translation} = paragraphs;
-    opts = opts || {};
     
     let title = '';
     let xmlStr = '';
@@ -105,14 +105,18 @@ export function ArticleJson2XML(json: ArticleJson, opts?: Partial<{
 }
 
 function getClassStr(baseClass: string, extendClass?: string, htmlStr = false) {
-    const classStr = (baseClass || '' + ' ' + extendClass || '').trim()
-    return htmlStr && classStr ? `class=${classStr}` : classStr;
+    baseClass = baseClass || '';
+    extendClass = extendClass || '';
+    const classStr = (baseClass + ' ' + extendClass).trim()
+    return htmlStr && classStr ? `class="${classStr}"` : classStr;
 }
 
 function getStyleStr(style: string, extendStyle?: string, htmlStr = false) {
+    style = style || '';
+    extendStyle = extendStyle || '';
     const split = style.endsWith(';') ? '' : ';';
     const styleStr = (style + split + extendStyle || '').trim()
-    return htmlStr && styleStr ? `style=${styleStr}` : styleStr;
+    return htmlStr && styleStr ? `style="${styleStr}"` : styleStr;
 }
 
 /**

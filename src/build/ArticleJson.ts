@@ -11,7 +11,7 @@ export function source2Articlejson(opts: {
     /**译文源码 */
     translation: string;
     /**样式表 */
-    style: ArticleStyle;
+    style?: ArticleStyle;
 }): ArticleJson {
     const json: ArticleJson = {
         paragraphs: {
@@ -53,6 +53,9 @@ export function source2ArticleItems(dataStr: string): ArticleParagraph[] {
                 p = p.substring(0, p.length - ParagraphEnd.length - 1);
             }
             item = paragraph2Json(p);
+            if(isNoneParagraph(item)) {
+                return;
+            }
             merges.push({
                 content: [item],
                 options: {
@@ -70,6 +73,9 @@ export function source2ArticleItems(dataStr: string): ArticleParagraph[] {
             return;
         }
         item = paragraph2Json(p);
+        if(isNoneParagraph(item)) {
+            return;
+        }
         if(typeof item === 'string') {
             paragraphs.push({
                 content: [item],
@@ -125,7 +131,7 @@ export function paragraph2Json(p: string): ArticleParagraph | string {
         item += c;
     }
     if(item) {
-        (json.content as string[]).push(item);
+        json.content.push(item);
     }
     if(!json.options && json.content.length === 1) {
         return json.content.pop();
@@ -148,4 +154,22 @@ export function paragraph2Json(p: string): ArticleParagraph | string {
         });
         return json;
     }
+}
+
+/**
+ * 空段
+ */
+function isNoneParagraph(p: ArticleParagraph | string) {
+    if(typeof p === 'string') {
+        return !p.trim();
+    }
+    let isNone = true;
+    p.content.some(innerP => {
+        if(!isNoneParagraph(innerP)) {
+            isNone = false;
+            return true;
+        }
+        return false;
+    });
+    return isNone;
 }
