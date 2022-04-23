@@ -1,44 +1,7 @@
 /**
- * 文章段配置
- */
-export interface ArticleParagraphOptions {
-    /**段标记 */
-    tag: string;
-    /**段内注释 */
-    '*': boolean;
-    /**段注释 */
-    '**': boolean;
-    /**换行标记 */
-    newline: boolean;
-    /**附加类 */
-    class: string;
-    /**附加样式 */
-    style: string;
-}
-
-/**
- * 文章段格式
- */
-export interface ArticleParagraph {
-    /**内容 */
-    content: (string | ArticleParagraph)[];
-    /**配置 */
-    options?: Partial<ArticleParagraphOptions>;
-}
-
-/**
- * 文章样式表
- * @key 类名
- * @value css object
-*/
-export interface ArticleStyle {
-    [className: string]: {[csskey: string]: string},
-}
-
-/**
  * 文章Json结构
  */
-export interface ArticleJson {
+ export interface ArticleJson {
     /**文章段集合 */
     paragraphs: {
         /**原文 */
@@ -48,8 +11,60 @@ export interface ArticleJson {
         /**译文 */
         translation: ArticleParagraph[],
     };
+    /**文章类名表 */
+    class: ArticleClass,
     /**文章样式 */
     style?: ArticleStyle;
+}
+
+/**
+ * 文章段格式
+ */
+export type ArticleParagraph = ParagraphSentence[];
+
+/**段中句 */
+export interface ParagraphSentence {
+    /**文本 */
+    text: string;
+    /**参数 */
+    options: SentenceOption;
+}
+
+/**
+ * 段中句参数
+ */
+export interface SentenceOption {
+    /**标签名 */
+    tag: string;
+    /**附加类 */
+    class?: string;
+    /**附加样式 */
+    style?: string;
+}
+
+/**
+ * 文章类名表
+ */
+export interface ArticleClass {
+    /**段合并类名 */
+    merge: string;
+    /**原文段中句类名 */
+    sourceSentence: string;
+    /**注解段中句类名 */
+    noteSentence: string;
+    /**译文段中句类名 */
+    translationSentence: string;
+}
+/**
+ * 文章样式表
+ * @key 类名
+ * @value css object
+*/
+export interface ArticleStyle {
+    /**背景色 */
+    $background: string;
+    /**类名 - 样式 */
+    [className: string]: string;
 }
 
 export interface XmlInfo {
@@ -62,5 +77,5 @@ export interface XmlInfo {
     /**段分割内容 */
     arr: string[];
     /**段分割附带选项 */
-    optionIndexMap?: Partial<ArticleParagraphOptions>[];
-};
+    optionIndexMap?: Partial<SentenceOption>[];
+}

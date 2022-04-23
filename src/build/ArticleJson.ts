@@ -1,4 +1,4 @@
-import { ArticleJson, ArticleParagraph, ArticleStyle } from "./constants";
+import { ArticleClass, ArticleJson, ArticleParagraph, ArticleStyle } from "./constants";
 
 /**
  * 源文本转文章json格式
@@ -10,15 +10,26 @@ export function source2Articlejson(opts: {
     note: string;
     /**译文源码 */
     translation: string;
+    /**文章类名表 */
+    class?: Partial<ArticleClass>,
     /**样式表 */
     style?: ArticleStyle;
 }): ArticleJson {
+    const defayltClass: ArticleClass = {
+        merge: 'merge',
+        sourceSentence: 'source',
+        noteSentence: 'note',
+        translationSentence: 'translation',
+    };
     const json: ArticleJson = {
         paragraphs: {
             source: source2ArticleItems(opts.source),
             note: source2ArticleItems(opts.note),
-            translation: source2ArticleItems(opts.translation),
+            translation: source2ArticleItems(opts.translation, {
+                defaultSentenceTag: 'p',
+            }),
         },
+        class: Object.assign({}, defayltClass, opts.class),
         style: opts.style,
     };
     return json;
@@ -28,7 +39,9 @@ export function source2Articlejson(opts: {
  * 源文本转文章段集合
  * @param dataStr 源文本
  */
-export function source2ArticleItems(dataStr: string): ArticleParagraph[] {
+export function source2ArticleItems(dataStr: string, opt?: Partial<{
+    defaultSentenceTag: string,
+}>): ArticleParagraph[] {
     /**段分隔符 */
     const ParagraphSplit = '\n';
     /**段开始标记 */
@@ -36,106 +49,103 @@ export function source2ArticleItems(dataStr: string): ArticleParagraph[] {
     /**段结束标记 */
     const ParagraphEnd = '\>';
     
+    opt = opt || {};
     const dataArr = dataStr.split(ParagraphSplit);
-    let beginMerge = false; // 段合并标记
+    /**段合并标记 */
+    let beginMerge = false;
+    /**文章段结合 */
     const paragraphs: ArticleParagraph[] = [];
-    const merges: ArticleParagraph[] = [];
-    let item: ArticleParagraph | string = null;
+
+    /**文章段 */
+    let paragraph: ArticleParagraph = [];
     dataArr.forEach(p => {
+        p = p.trim();
         if(!beginMerge && p.startsWith(ParagraphStart)) {
             p = p.substring(ParagraphStart.length);
             beginMerge = true;
         }
-        // 开始段合并
+        // 段合并
         if(beginMerge) {
             beginMerge = !p.endsWith(ParagraphEnd);
             if(!beginMerge) {
                 p = p.substring(0, p.length - ParagraphEnd.length - 1);
             }
-            item = paragraph2Json(p);
-            if(isNoneParagraph(item)) {
+            const pJson = paragraph2Json(p);
+            if(isNoneParagraph(pJson)) {
                 return;
             }
-            merges.push({
-                content: [item],
-                options: {
-                    newline: true,
-                },
-            });
+            pJson.forEach((s) => paragraph.push(s));
+            paragraph[paragraph.length - 1];
 
             if(!beginMerge) {
-                // 结束合并
-                paragraphs.push({
-                    content: [...merges],
-                });
-                merges.length = 0;
+                // 合并结束
+                paragraphs.push(paragraph);
+                paragraph = [];
             }
             return;
         }
-        item = paragraph2Json(p);
-        if(isNoneParagraph(item)) {
+        // 普通段读取
+        paragraph = paragraph2Json(p, opt.defaultSentenceTag);
+        if(isNoneParagraph(paragraph)) {
             return;
         }
-        if(typeof item === 'string') {
-            paragraphs.push({
-                content: [item],
-            });
-        } else {
-            paragraphs.push(item);
-        }
+        paragraphs.push(paragraph);
+        paragraph = [];
     });
     return paragraphs;
 }
 
 /**
- * 段源码解析为文章段json格式
+ * 段源码解析为文章段Json格式
  */
-export function paragraph2Json(p: string): ArticleParagraph | string {
-    /** */
+export function paragraph2Json(p: string, defaultSentenceTag = 'span'): ArticleParagraph {
+    /**脚本起始符 */
     const scriptStart = '{';
+    /**脚本结束符 */
     const scriptEnd = '}';
     
-    const json: ArticleParagraph = {
-        content: [],
-    }
+    const json: ArticleParagraph = [];
     
-    let readScript = false; // 记录配置信息标记
-    let item = '';
+    /**记录配置信息 */
+    let readScript = false;
+    /**段中句文本 */
+    let centenceText = '';
     for(const c of p) {
         if(c === scriptStart) {
             readScript = true;
-            if(item) {
-                (json.content as ArticleParagraph[]).push({
-                    content: [item],
-                });
-            }
-            item = '';
+            centenceText && json.push({
+                text: centenceText.trim(),
+                options: {
+                    tag: defaultSentenceTag,
+                },
+            });
+            centenceText = '';
             continue;
         }
         if(readScript && c === scriptEnd) {
             // 提取配置信息
             try {
-                const options = script2Json(item);
-                const len = json.content.length;
-                const lastItem = len > 0 && json.content[len - 1];
-                if(lastItem && typeof lastItem != 'string') {
-                    lastItem.options = options;
+                const options = script2Json(centenceText);
+                const len = json.length;
+                const lastItem = len > 0 && json[len - 1];
+                if(lastItem) {
+                    lastItem.options = Object.assign(lastItem.options, options);
                 }
             } catch (e) {
                 console.error(e);
             }
             readScript = false;
-            item = '';
+            centenceText = '';
             continue;
         }
-        item += c;
+        centenceText += c;
     }
-    if(item) {
-        json.content.push(item);
-    }
-    if(!json.options && json.content.length === 1) {
-        return json.content.pop();
-    }
+    centenceText && json.push({
+        text: centenceText,
+        options: {
+            tag: defaultSentenceTag,
+        },
+    });
     return json;
 
     function script2Json(script: string) {
@@ -157,15 +167,13 @@ export function paragraph2Json(p: string): ArticleParagraph | string {
 }
 
 /**
- * 空段
+ * 是否为空段
+ * @description 有些段落无信息，只是为了占位
  */
-function isNoneParagraph(p: ArticleParagraph | string) {
-    if(typeof p === 'string') {
-        return !p.trim();
-    }
+function isNoneParagraph(p: ArticleParagraph) {
     let isNone = true;
-    p.content.some(innerP => {
-        if(!isNoneParagraph(innerP)) {
+    p.some(innerP => {
+        if(innerP.text) {
             isNone = false;
             return true;
         }
