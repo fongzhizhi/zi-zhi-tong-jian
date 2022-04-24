@@ -10,7 +10,7 @@ const { generateArticle2Xml } = require('../dist/lib.umd.js');
  function generateArticle2Markdown(source, opts) {
     try {     
         const xml = generateArticle2Xml(source);
-        const fileName = (xml.title || opts.fileTitle|| new Date().toString()) + '.html'
+        const fileName = (opts.fileTitle || xml.title || new Date().toString()) + '.html'
         const filePath = path.resolve(opts.path || 'datas/temporary', fileName);
         fs.writeFileSync(filePath, xml.xmlStr);
         console.log('generating article success!', filePath);

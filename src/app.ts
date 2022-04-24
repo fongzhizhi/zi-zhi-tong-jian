@@ -1,27 +1,16 @@
 import axios from "axios";
-import { marked } from "marked";
 import "./styles/main.less";
 import { printStyleLog } from "./utils/util";
 
-import { generateArticle2Xml } from "./convertor/xml";
-import { ArticleStyleJson } from "./convertor/style";
-
 window.onload = async () => {
-  const source = await loadData("1.周纪/1-source.txt");
-  const note = await loadData("1.周纪/1-note.txt");
-  const translation = await loadData("1.周纪/1-translation.txt");
-  const xml = generateArticle2Xml({
-    source,
-    note,
-    translation,
-  });
-  const readMeHtml = marked(xml.xmlStr);
-  console.log(xml.title);
-  document.getElementById("article").innerHTML = readMeHtml;
+  const source = await loadData("1.周纪/1.html");
+  document.getElementById("article").innerHTML = source;
 };
 
+/**读取datas目录下的文件 */
 function loadData(path: string) {
-  path = path.replace(/\//g, ";");
+  path = path.replace(/\//g, ";")
+  console.log('loadData from', path);
   return new Promise<string>((resolce, reject) => {
     axios
       .get("http://localhost:3030/datas/" + path)
