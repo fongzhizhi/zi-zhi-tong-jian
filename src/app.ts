@@ -9,8 +9,8 @@ window.onload = async () => {
 
 /**读取datas目录下的文件 */
 function loadData(path: string) {
-  path = path.replace(/\//g, ";")
-  console.log('loadData from', path);
+  path = path.replace(/\//g, ";");
+  console.log("loadData from", path);
   return new Promise<string>((resolce, reject) => {
     axios
       .get("http://localhost:3030/datas/" + path)

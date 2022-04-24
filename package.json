@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "husky install",
     "lint-staged": "lint-staged",
-    "prettier": "prettier --write",
+    "prettier": "prettier --write src/**/*",
     "build": "vite build",
     "server": "node app.router.js",
     "vite": "vite --open",
