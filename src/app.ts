@@ -13,10 +13,8 @@ window.onload = async () => {
     source,
     note,
     translation,
-
     style: {
-        $background: '#f44336',
-
+      $background: "#f44336",
       source: "color: #ff5722; font-size: 18px;",
       note: "color: #2196f3; font-size: 14px;",
       translation: "color: #25bb7f; font-size: 16px;",
