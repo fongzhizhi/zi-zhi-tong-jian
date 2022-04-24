@@ -4,11 +4,12 @@
         "allowJs": true,
         "sourceMap": true,
         "isolatedModules": true,
+        "moduleResolution": "node"
     },
     "include": [
         "src/**/*"
     ],
     "exclude": [
-        "node_modules",
+        "node_modules"
     ],
 }

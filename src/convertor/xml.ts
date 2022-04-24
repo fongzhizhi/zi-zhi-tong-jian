@@ -2,9 +2,11 @@ import { source2Articlejson } from "./ArticleJson";
 import {
   ArticleJson,
   ArticleSource,
+  ArticleStyle,
   ParagraphSentence,
   SentenceOption,
 } from "./constants";
+import { ArticleStyleJson } from "./style";
 
 /**
  * 文章json格式转xml格式
@@ -34,7 +36,10 @@ export function ArticleJson2XML(
     noteSentenceClass,
   ].join("-");
   const translationSentenceClass = articleClass.translationSentence;
-  const articleStyle = opts.ignoreStyle ? {} : json.style || {};
+  if (!json.style) {
+    json.style = ArticleStyleJson.default;
+  }
+  const articleStyle: ArticleStyle = opts.ignoreStyle ? {} : json.style || {};
 
   let title = "";
   let xmlStr = "";
@@ -57,13 +62,13 @@ export function ArticleJson2XML(
       const sourceStr = paragraphSentence2Xml(
         sourceSentence,
         isTitle ? sourceSentenceClass + " " + "title" : sourceSentenceClass,
-        isTitle ? "" : articleStyle[sourceSentenceClass]
+        isTitle ? "" : articleStyle.source || articleStyle[sourceSentenceClass]
       );
       // 注解段中句
       const noteStr = paragraphSentence2Xml(
         noteParagraph[noteSentenceIndex++],
         noteSentenceClass,
-        articleStyle[noteSentenceClass]
+        articleStyle.note || articleStyle[noteSentenceClass]
       );
       // 合并
       sourceAndNoteStr += sourceStr + noteStr;
@@ -80,7 +85,7 @@ export function ArticleJson2XML(
       translationStr += paragraphSentence2Xml(
         translationSentence,
         translationSentenceClass,
-        articleStyle[translationSentenceClass]
+        articleStyle.translation || articleStyle[translationSentenceClass]
       );
     });
     translationStr = getTagHtml({

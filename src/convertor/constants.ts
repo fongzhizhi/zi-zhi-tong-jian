@@ -62,7 +62,13 @@ export interface ArticleClass {
  */
 export interface ArticleStyle {
   /**背景色 */
-  $background: string;
+  $background?: string;
+  /**原文样式 */
+  source?: string;
+  /**注解样式 */
+  note?: string;
+  /**译文样式 */
+  translation?: string;
   /**类名 - 样式 */
   [className: string]: string;
 }

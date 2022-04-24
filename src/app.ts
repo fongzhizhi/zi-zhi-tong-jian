@@ -4,6 +4,7 @@ import "./styles/main.less";
 import { printStyleLog } from "./utils/util";
 
 import { generateArticle2Xml } from "./convertor/xml";
+import { ArticleStyleJson } from "./convertor/style";
 
 window.onload = async () => {
   const source = await loadData("1.周纪/1-source.txt");
@@ -13,12 +14,6 @@ window.onload = async () => {
     source,
     note,
     translation,
-    style: {
-      $background: "#f44336",
-      source: "color: #ff5722; font-size: 18px;",
-      note: "color: #2196f3; font-size: 14px;",
-      translation: "color: #25bb7f; font-size: 16px;",
-    },
   });
   const readMeHtml = marked(xml.xmlStr);
   console.log(xml.title);

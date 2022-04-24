@@ -11,7 +11,8 @@
     "build": "vite build",
     "server": "node app.router.js",
     "vite": "vite --open",
-    "dev": "npm-run-all -p server vite"
+    "dev": "npm-run-all -p server vite",
+    "generator": "node node-lib/article-generator.js"
   },
   "lint-staged": {
     "src/**/*": [
