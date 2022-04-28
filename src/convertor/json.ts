@@ -4,17 +4,12 @@ import {
   ArticleParagraph,
   ArticleSource,
 } from "./constants";
+import { defayltClass } from "./style";
 
 /**
  * 源文本转文章json格式
  */
 export function source2Articlejson(opts: ArticleSource): ArticleJson {
-  const defayltClass: ArticleClass = {
-    merge: "merge",
-    sourceSentence: "source",
-    noteSentence: "note",
-    translationSentence: "translation",
-  };
   const json: ArticleJson = {
     paragraphs: {
       source: source2ArticleItems(opts.source),
@@ -113,9 +108,10 @@ export function paragraph2Json(
   for (const c of p) {
     if (c === scriptStart) {
       readScript = true;
+      centenceText = centenceText.trim();
       centenceText &&
         json.push({
-          text: centenceText.trim(),
+          text: centenceText,
           options: {
             tag: defaultSentenceTag,
           },
@@ -141,6 +137,7 @@ export function paragraph2Json(
     }
     centenceText += c;
   }
+  centenceText = centenceText.trim();
   centenceText &&
     json.push({
       text: centenceText,

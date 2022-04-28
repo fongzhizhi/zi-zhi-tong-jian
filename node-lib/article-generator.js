@@ -2,6 +2,9 @@ const fs = require('fs');
 const path = require('path');
 const { generateArticle2Xml } = require('../dist/lib.umd.js');
 
+/**是否使用行内样式 */
+const innerStyle = false;
+
 /**
  * 生成 markdown 格式文章
  * @param {ArticleSource} source
@@ -9,7 +12,9 @@ const { generateArticle2Xml } = require('../dist/lib.umd.js');
  */
  function generateArticle2Markdown(source, opts) {
     try {     
-        const xml = generateArticle2Xml(source);
+        const xml = generateArticle2Xml(source, {
+            innerStyle,
+        });
         const fileName = (opts.fileTitle || xml.title || new Date().toString()) + '.html'
         const filePath = path.resolve(opts.path || 'datas/temporary', fileName);
         fs.writeFileSync(filePath, xml.xmlStr);
@@ -60,23 +65,29 @@ function generaArticlesFromDir(dir, opt) {
 }
 
 /**
- * 遍历数据目录生成所有文章
+ * 遍历目录生成所有文章
  * @param {?Partial< {class: Partial<ArticleClass>;style: ArticleStyle;}>} opt 参数
  */
-function genetatingAllArticles(opt) {
+function genetatingAllArticles(baseDir, opt) {
     try {
-        const baseDir = 'datas/';
-        const dirs = fs.readdirSync(baseDir);
-        dirs.forEach(dir => {
-            dir = path.resolve(baseDir, dir);
-            const stat = fs.statSync(dir);
-            if(stat.isDirectory()) {
-                generaArticlesFromDir(dir, opt);
-            }
-        });
+        const baseStat = fs.statSync(baseDir);
+        if(baseStat.isDirectory()) {
+            const dirs = fs.readdirSync(baseDir);
+            dirs.forEach(dir => {
+                dir = path.resolve(baseDir, dir);
+                const stat = fs.statSync(dir);
+                if(stat.isDirectory()) {
+                    // 解析当前目录
+                    generaArticlesFromDir(dir, opt);
+                    // 深度遍历当前目录
+                    genetatingAllArticles(dir, opt);
+                }
+            });
+        }
     } catch (err) {
         console.error(err);
     }
 }
 
-genetatingAllArticles();
+// 解析datas目录
+genetatingAllArticles('datas');

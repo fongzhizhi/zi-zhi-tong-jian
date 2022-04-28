@@ -13,7 +13,8 @@
     "vite": "vite --open",
     "dev": "npm-run-all -p server vite",
     "generate-simple": "node node-lib/article-generator.js",
-    "generate": "npm-run-all -s build generate-simple"
+    "prettier-article": "prettier --write datas/**/*.html",
+    "generate": "npm-run-all -s build generate-simple prettier-article"
   },
   "lint-staged": {
     "src/**/*": [

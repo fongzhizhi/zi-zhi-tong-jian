@@ -1,12 +1,14 @@
-import { source2Articlejson } from "./ArticleJson";
+import { source2Articlejson } from "./json";
 import {
+  ArticleClass,
   ArticleJson,
   ArticleSource,
   ArticleStyle,
   ParagraphSentence,
   SentenceOption,
+  XMLConfig,
 } from "./constants";
-import { ArticleStyleJson } from "./style";
+import { ArticleStyleJson, styleId } from "./style";
 
 /**
  * 文章json格式转xml格式
@@ -15,10 +17,7 @@ import { ArticleStyleJson } from "./style";
  */
 export function ArticleJson2XML(
   json: ArticleJson,
-  opts?: Partial<{
-    /**忽略样式 */
-    ignoreStyle: true;
-  }>
+  opts?: Partial<XMLConfig>
 ): {
   /**文章名 */
   title: string;
@@ -39,10 +38,11 @@ export function ArticleJson2XML(
   if (!json.style) {
     json.style = ArticleStyleJson.default;
   }
-  const articleStyle: ArticleStyle = opts.ignoreStyle ? {} : json.style || {};
+  const articleStyle: ArticleStyle = !opts.innerStyle ? {} : json.style || {};
 
   let title = "";
   let xmlStr = "";
+  let cls = "";
   // 以原文为蓝本
   source.forEach((sourceParagraph, pIndex) => {
     const noteParagraph = note[pIndex] || [];
@@ -51,8 +51,9 @@ export function ArticleJson2XML(
 
     // 原文 + 注解合并
     let sourceAndNoteStr = "";
+    let isTitle = false;
     sourceParagraph.forEach((sourceSentence) => {
-      const isTitle =
+      isTitle =
         isTitleType(sourceSentence.options.tag) ||
         sourceSentence.options.tag.startsWith("h");
       if (!title && ["#", "h1"].includes(sourceSentence.options.tag)) {
@@ -61,7 +62,7 @@ export function ArticleJson2XML(
       // 原文段中句
       const sourceStr = paragraphSentence2Xml(
         sourceSentence,
-        isTitle ? sourceSentenceClass + " " + "title" : sourceSentenceClass,
+        isTitle ? "title" : sourceSentenceClass,
         isTitle ? "" : articleStyle.source || articleStyle[sourceSentenceClass]
       );
       // 注解段中句
@@ -75,7 +76,9 @@ export function ArticleJson2XML(
     });
     sourceAndNoteStr = getTagHtml({
       tag: "div",
-      class: sourceAndNoteParagraphClass,
+      class: isTitle
+        ? "title-" + sourceAndNoteParagraphClass
+        : sourceAndNoteParagraphClass,
       text: sourceAndNoteStr,
     }) as string;
     // 译文
@@ -95,13 +98,31 @@ export function ArticleJson2XML(
     });
 
     // 三段合并
+    cls = isTitle ? "title-" + articleClass.merge : articleClass.merge;
     xmlStr += getTagHtml({
       tag: "div",
       text: sourceAndNoteStr + translationStr,
-      class: articleClass.merge,
-      style: articleStyle[articleClass.merge],
+      class: cls,
+      style: articleStyle[cls],
     });
   });
+
+  cls = articleClass.article;
+  xmlStr = getTagHtml({
+    tag: "div",
+    text: xmlStr,
+    class: cls,
+    style: articleStyle[cls],
+  });
+
+  // style样式
+  if (!opts.innerStyle) {
+    const style: {
+      [className: string]: string;
+    } = Object.assign({}, json.style);
+    xmlStr = style2Xml(style) + xmlStr;
+  }
+
   return {
     title,
     xmlStr,
@@ -126,9 +147,12 @@ export function ArticleJson2XML(
 /**
  * 生成 xml 格式文章
  */
-export function generateArticle2Xml(opts: ArticleSource) {
+export function generateArticle2Xml(
+  opts: ArticleSource,
+  xmlConfig?: Partial<XMLConfig>
+) {
   const articleJson = source2Articlejson(opts);
-  const xml = ArticleJson2XML(articleJson);
+  const xml = ArticleJson2XML(articleJson, xmlConfig);
   return xml;
 }
 
@@ -203,6 +227,7 @@ function getTagHtml(opt: {
   text: string;
   class?: string;
   style?: string;
+  attrs?: { [attrName: string]: string };
 }): string {
   const isTitle = isTitleType(opt.tag);
   let pre = "";
@@ -219,6 +244,12 @@ function getTagHtml(opt: {
   if (opt.style) {
     pre += ` style="${opt.style}"`;
   }
+  if (opt.attrs) {
+    for (let k in opt.attrs) {
+      const v = opt.attrs[k];
+      pre += ` ${k}="${v}"`;
+    }
+  }
   pre += ">";
   const suffix = `</${tag}>`;
   // 占位
@@ -226,4 +257,21 @@ function getTagHtml(opt: {
     opt.text = "";
   }
   return opt.text ? pre + opt.text + suffix : "";
+}
+
+/**
+ * style样式表源码
+ */
+function style2Xml(style: { [className: string]: string }) {
+  style = style || {};
+  let styleXml = "";
+  for (const className in style) {
+    const cssStr = style[className];
+    styleXml += `.${className}{${cssStr}}`;
+  }
+  return getTagHtml({
+    tag: "style",
+    text: styleXml,
+    attrs: { id: styleId },
+  });
 }

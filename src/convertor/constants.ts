@@ -46,6 +46,8 @@ export interface SentenceOption {
  * 文章类名表
  */
 export interface ArticleClass {
+  /**文章总类名 */
+  article: string;
   /**段合并类名 */
   merge: string;
   /**原文段中句类名 */
@@ -55,20 +57,23 @@ export interface ArticleClass {
   /**译文段中句类名 */
   translationSentence: string;
 }
+
 /**
  * 文章样式表
  * @key 类名
  * @value css object
  */
 export interface ArticleStyle {
-  /**背景色 */
-  $background?: string;
   /**原文样式 */
   source?: string;
   /**注解样式 */
   note?: string;
   /**译文样式 */
   translation?: string;
+  /**文章样式 */
+  article?: string;
+  /**合并段样式 */
+  merge?: string;
   /**类名 - 样式 */
   [className: string]: string;
 }
@@ -98,4 +103,9 @@ export interface ArticleSource {
   class?: Partial<ArticleClass>;
   /**样式表 */
   style?: ArticleStyle;
+}
+
+export interface XMLConfig {
+  /**是否采用行内样式 */
+  innerStyle: boolean;
 }
