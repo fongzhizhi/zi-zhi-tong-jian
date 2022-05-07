@@ -2,13 +2,17 @@ import { ArticleClass } from "./constants";
 
 export function pageAction() {}
 
-/**dom选择器 */
-function $$$(selectors: string, scope?: Element) {
+/**
+ * 查询选择器匹配的第一个元素
+ */
+function $$(selectors: string, scope?: Element) {
   return (scope || document).querySelector(selectors);
 }
 
-/**dom选择器 */
-function $$$All(selectors: string, scope?: Element) {
+/**
+ * 查询选择器匹配的所有元素
+ */
+function $$$(selectors: string, scope?: Element) {
   return (scope || document).querySelectorAll(selectors);
 }
 
@@ -29,18 +33,18 @@ class ArticleSelector {
   constructor(articleClass: ArticleClass, scope?: Element | string) {
     this._class = articleClass;
     if (scope) {
-      this._scope = typeof scope === "string" ? $$$(scope) : scope;
+      this._scope = typeof scope === "string" ? $$(scope) : scope;
     }
   }
 
   /**查询单个元素 */
   query(className: string, tag?: string) {
-    return $$$(classSelector(className, tag), this._scope);
+    return $$(classSelector(className, tag), this._scope);
   }
 
   /**查询所有元素 */
   queryAll(className: string, tag?: string) {
-    return $$$All(classSelector(className, tag), this._scope);
+    return $$$(classSelector(className, tag), this._scope);
   }
 
   /**
